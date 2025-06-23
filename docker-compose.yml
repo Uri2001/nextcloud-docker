@@ -28,13 +28,15 @@ services:
       POSTGRES_DB: nextcloud
       POSTGRES_USER: nextcloud
       POSTGRES_PASSWORD: nextcloud
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: adminpass
       REDIS_HOST: redis
       NEXTCLOUD_TRUSTED_DOMAINS: nextcloud.local
       NEXTCLOUD_TRUSTED_PROXIES: proxy
       OVERWRITEPROTOCOL: https
       OVERWRITEHOST: nextcloud.local
       OVERWRITECLIURL: https://nextcloud.local
-    extra_hosts: ["nextcloud.local:127.0.0.1"]
+#    extra_hosts: ["nextcloud.local:127.0.0.1"]
     volumes:
       - ./data/nextcloud:/var/www/html:z
     depends_on:
@@ -67,6 +69,10 @@ services:
     depends_on:
       - app
       - collabora
+    networks:
+      default:
+        aliases:
+          - nextcloud.local
 
 networks:
   default:

@@ -1,0 +1,62 @@
+services:
+  proxy:
+    image: nginx:latest
+    container_name: nextcloud-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro,z
+      - ./nginx/certs:/etc/nginx/certs:ro,z
+    depends_on:
+      - app
+      - collabora
+
+  db:
+    image: postgres:15
+    container_name: nextcloud-db
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data:rw,z
+    environment:
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=nextcloudpass
+
+  redis:
+    image: redis:alpine
+    container_name: nextcloud-redis
+    restart: always
+
+  app:
+    image: nextcloud:apache
+    container_name: nextcloud-app
+    restart: always
+    volumes:
+      - nextcloud_data:/var/www/html:rw,z
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=nextcloudpass
+      - NEXTCLOUD_TRUSTED_PROXIES=proxy
+    depends_on:
+      - db
+      - redis
+
+  collabora:
+    image: collabora/code:latest
+    container_name: nextcloud-collabora
+    restart: always
+    cap_add:
+      - MKNOD
+    environment:
+      - domain=nextcloud\\.local
+      - "extra_params=--o:ssl.enable=false --o:ssl.termination=true"
+    expose:
+      - 9980
+
+volumes:
+  db_data:
+  nextcloud_data:
